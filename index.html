@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Night Shift Dash! 🩺</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            text-align: center;
+            margin: 0;
+            overflow: hidden;
+            overscroll-behavior-y: contain; 
+            touch-action: none; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen {
+            position: absolute;
+            z-index: 10;
+            background: rgba(15, 23, 42, 0.95); 
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto; 
+            backdrop-filter: blur(8px);
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .lose-title {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .level-title {
+            background: linear-gradient(135deg, #34d399, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        button {
+            background: linear-gradient(45deg, #0284c7, #0369a1);
+            color: white;
+            border: none;
+            padding: 16px 45px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #hud {
+            position: absolute;
+            top: 50px; 
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+            font-weight: bold;
+            z-index: 5;
+            pointer-events: none;
+            width: 100%;
+            text-align: center;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 10px 0;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #level-indicator {
+            font-size: 0.9rem;
+            color: #38bdf8;
+            display: block;
+            margin-top: 5px;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hidden { display: none !important; }
+
+        .note-card {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 25px;
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            max-width: 90%;
+            box-sizing: border-box;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="hud" class="hidden">
+            Score: <span id="score">0</span> / <span id="target-score">50</span>
+            <span id="level-indicator">Shift 1</span>
+        </div>
+
+        <canvas id="canvas"></canvas>
+
+        <div id="start-screen" class="screen">
+            <h1>The Night Shift Dash! 🏥</h1>
+            <p style="font-size: 1.1rem; max-width: 320px; color: #cbd5e1; margin-top: 5px; margin-bottom: 35px; line-height: 1.8; text-align: left; padding-left: 20px;">
+                🩺 Catch stethoscopes for <b>+5 pts</b><br>
+                ☕ Catch coffee for <b>+10 pts</b><br>
+                🦠 Avoid viruses! Dynamic deduction <b>-15 pts</b><br>
+                ❌ Dropping below 0 points = Game Over!<br>
+                ✨ Reach 200 points to finish your final shift!
+            </p>
+            <button onclick="startGame()">Start Shift</button>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 25px; font-weight: 500;">
+                ⚡ Drag your finger to move the med bag
+            </p>
+        </div>
+
+        <div id="lose-screen" class="screen hidden">
+            <h1 class="lose-title">Shift Failed! 📉</h1>
+            <p style="font-size: 1.2rem; max-width: 325px; color: #cbd5e1; font-family: Georgia, serif; font-style: italic; line-height: 1.8; margin-bottom: 35px;">
+                "Nursing is tough, and so are you. Take a breath, reset, and jump back in. You were born for this. Try again, my love."
+            </p>
+            <button onclick="resetGame()" style="background: linear-gradient(45deg, #ef4444, #b91c1c); box-shadow: 0 10px 25px rgba(185, 28, 28, 0.3);">
+                Try Again
+            </button>
+        </div>
+
+        <div id="level-screen" class="screen hidden">
+            <h1 class="level-title" id="level-title-text">Level Complete!</h1>
+            <div class="note-card" style="margin-top: 20px; margin-bottom: 30px;">
+                <p id="level-note-text" style="font-size: 1.15rem; line-height: 1.6; text-align: left; color: #cbd5e1; font-family: Georgia, serif; font-style: italic;">
+                    Placeholder text.
+                </p>
+            </div>
+            <button onclick="continueLevel()" style="background: linear-gradient(45deg, #10b981, #047857); box-shadow: 0 10px 25px rgba(4, 120, 87, 0.3);">
+                Continue Next Shift
+            </button>
+        </div>
+
+        <div id="victory-screen" class="screen hidden">
+            <div class="note-card" style="margin-top: 20px; margin-bottom: 20px;">
+                <h2 style="margin-top: 5px; font-size: 1.6rem; color: #38bdf8; font-family: Georgia, serif; font-style: italic;">
+                    To My Favorite Nurse,
+                </h2>
+                
+                <div style="font-size: 1.1rem; line-height: 1.8; text-align: center; color: #cbd5e1; margin: 20px 0; font-family: Georgia, serif;">
+                    <p style="margin: 5px 0;">The endless charts, the exams you've passed,</p>
+                    <p style="margin: 5px 0;">The late night studying has paid off at last.</p>
+                    <p style="margin: 5px 0;">With a gentle heart and hands that heal,</p>
+                    <p style="margin: 5px 0;">The pride I have for you is entirely real!</p>
+                </div>
+
+                <p style="font-size: 1.05rem; line-height: 1.6; text-align: left; color: #94a3b8; margin-bottom: 25px;">
+                    I have watched you push through the stress, the tears, and the impossible clinical hours. You didn't just survive nursing school—you conquered it. I cannot wait to see the incredible lives you will touch.
+                </p>
+                
+                <p style="font-size: 1.1rem; line-height: 1.6; text-align: center; color: #f472b6; font-weight: 600; margin-bottom: 0;">
+                    Congratulations, RN! The future is yours. ❤️
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let score = 0;
+        let gameActive = false;
+        let player, items;
+        let spawnTimer;
+
+        // Level Configuration
+        const levels = [
+            { target: 50,  speedMult: 1.0, spawnRate: 500, title: "Shift 1 Complete! 🩺", text: "You crushed your first few clinicals! Just like in real life, you handle the pressure with absolute grace. Keep pushing, I believe in you!" },
+            { target: 120, speedMult: 1.4, spawnRate: 400, title: "Shift 2 Complete! 🌙", text: "I've seen the late nights and the endless flashcards. Your dedication to your patients and your craft amazes me every single day. One more big push to the finish line!" },
+            { target: 200, speedMult: 1.8, spawnRate: 300, title: "Graduation!", text: "" } // Final level triggers win screen
+        ];
+        let currentLevel = 0;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'catch') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+            } else if (type === 'coffee') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'alarm') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+            } else if (type === 'level') {
+                const notes = [440, 554.37, 659.25];
+                notes.forEach((freq, index) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, audioCtx.currentTime + index * 0.15);
+                    g.gain.setValueAtTime(0.2, audioCtx.currentTime + index * 0.15);
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + index * 0.15 + 0.3);
+                    o.start(audioCtx.currentTime + index * 0.15); o.stop(audioCtx.currentTime + index * 0.15 + 0.3);
+                });
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, index) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, audioCtx.currentTime + index * 0.1);
+                    g.gain.setValueAtTime(0.2, audioCtx.currentTime + index * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + index * 0.1 + 0.3);
+                    o.start(audioCtx.currentTime + index * 0.1); o.stop(audioCtx.currentTime + index * 0.1 + 0.3);
+                });
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function initGameObjects() {
+            player = {
+                x: canvas.width / 2 - 40,
+                y: canvas.height - 120,
+                width: 80,
+                height: 50,
+                emoji: "💼" // Medical bag
+            };
+            items = [];
+            updateHUD();
+        }
+
+        function updateHUD() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('target-score').innerText = levels[currentLevel].target;
+            document.getElementById('level-indicator').innerText = "Shift " + (currentLevel + 1);
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!gameActive) return;
+            player.x = Math.min(canvas.width - player.width, Math.max(0, e.clientX - player.width / 2));
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!gameActive) return;
+            let tX = e.touches[0].clientX;
+            player.x = Math.min(canvas.width - player.width, Math.max(0, tX - player.width / 2));
+        });
+
+        function spawnItem() {
+            if (!gameActive) return;
+            
+            const rand = Math.random();
+            let emoji = "🩺";
+            let type = "good";
+
+            if (rand < 0.40) { 
+                emoji = "🦠"; // Virus
+                type = "bad";
+            } else if (rand > 0.94) { 
+                emoji = "☕";
+                type = "coffee";
+            }
+
+            // Apply level speed multiplier
+            let baseSpeed = Math.random() * 2.2 + 3.5;
+            let currentSpeed = baseSpeed * levels[currentLevel].speedMult;
+
+            items.push({
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                size: 40,
+                speed: currentSpeed,
+                emoji: emoji,
+                type: type
+            });
+            
+            let spawnDelay = Math.random() * levels[currentLevel].spawnRate + (levels[currentLevel].spawnRate - 50);
+            spawnTimer = setTimeout(spawnItem, spawnDelay); 
+        }
+
+        function startGame() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+            document.getElementById('hud').classList.remove('hidden');
+            
+            gameActive = true;
+            initGameObjects();
+            spawnItem();
+            update();
+        }
+
+        function resetGame() {
+            score = 0;
+            currentLevel = 0;
+            startGame();
+        }
+
+        function continueLevel() {
+            currentLevel++;
+            items = []; // clear screen
+            document.getElementById('level-screen').classList.add('hidden');
+            updateHUD();
+            gameActive = true;
+            spawnItem();
+            update();
+        }
+
+        function triggerLose() {
+            gameActive = false;
+            clearTimeout(spawnTimer);
+            playSound('alarm');
+            setTimeout(() => playSound('lose'), 300);
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('lose-screen').classList.remove('hidden');
+        }
+
+        function triggerLevelUp() {
+            gameActive = false;
+            clearTimeout(spawnTimer);
+            playSound('level');
+            
+            document.getElementById('level-title-text').innerText = levels[currentLevel].title;
+            document.getElementById('level-note-text').innerText = levels[currentLevel].text;
+            document.getElementById('level-screen').classList.remove('hidden');
+        }
+
+        function triggerWin() {
+            gameActive = false;
+            clearTimeout(spawnTimer);
+            playSound('win');
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('victory-screen').classList.remove('hidden');
+
+            var end = Date.now() + (6 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = "50px serif";
+            ctx.fillText(player.emoji, player.x, player.y + 40);
+
+            for (let i = items.length - 1; i >= 0; i--) {
+                let item = items[i];
+                item.y += item.speed;
+
+                ctx.font = "35px serif";
+                ctx.fillText(item.emoji, item.x, item.y);
+
+                if (item.y >= player.y && item.y <= player.y + player.height &&
+                    item.x >= player.x - 20 && item.x <= player.x + player.width) {
+                    
+                    if (item.type === "good") {
+                        score += 5; 
+                        playSound('catch');
+                    } else if (item.type === "coffee") {
+                        score += 10; 
+                        playSound('coffee');
+                    } else {
+                        score -= 15; 
+                        playSound('alarm');
+                    }
+                    
+                    document.getElementById('score').innerText = score;
+                    items.splice(i, 1);
+
+                    if (score < 0) {
+                        triggerLose();
+                        return;
+                    }
+
+                    // Level Up / Win Logic
+                    if (score >= levels[currentLevel].target) {
+                        if (currentLevel < levels.length - 1) {
+                            triggerLevelUp();
+                        } else {
+                            triggerWin();
+                        }
+                        return; // Halt update loop until next state
+                    }
+                    continue;
+                }
+
+                if (item.y > canvas.height) {
+                    items.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
+    </script>
+</body>
+</html>
