@@ -79,6 +79,7 @@
             box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
             transition: transform 0.2s;
             margin-top: 10px;
+            margin-bottom: 20px;
         }
 
         button:active {
@@ -159,9 +160,12 @@
 
         <div id="lose-screen" class="screen hidden">
             <h1 class="lose-title">Shift Failed! 📉</h1>
-            <p style="font-size: 1.2rem; max-width: 325px; color: #cbd5e1; font-family: Georgia, serif; font-style: italic; line-height: 1.8; margin-bottom: 35px;">
-                "Nursing is tough, and so are you. Take a breath, reset, and jump back in. You were born for this. Try again, my love."
-            </p>
+            <div style="font-size: 1.1rem; max-width: 350px; color: #cbd5e1; font-family: Georgia, serif; font-style: italic; line-height: 1.6; margin-bottom: 30px; text-align: left;">
+                <p>Oops… looks like you’ll have to retake this one, Nurse Beyoncé! 😉</p>
+                <p>If there’s one thing I’ve learned from watching you chase your dream, it’s that one setback has never been enough to stop you. You always get back up, work harder, and prove to yourself what you’re capable of.</p>
+                <p>So don’t worry—hit that button, give it another go, and show this game the same determination that earned you your nursing degree.</p>
+                <p style="text-align: center; color: #f472b6; font-weight: bold;">You’ve got this, my love. ❤️</p>
+            </div>
             <button onclick="resetGame()" style="background: linear-gradient(45deg, #ef4444, #b91c1c); box-shadow: 0 10px 25px rgba(185, 28, 28, 0.3);">
                 Try Again
             </button>
@@ -180,24 +184,27 @@
         </div>
 
         <div id="victory-screen" class="screen hidden">
-            <div class="note-card" style="margin-top: 20px; margin-bottom: 20px;">
-                <h2 style="margin-top: 5px; font-size: 1.6rem; color: #38bdf8; font-family: Georgia, serif; font-style: italic;">
-                    To My Favorite Nurse,
+            <div class="note-card" style="margin-top: 40px; margin-bottom: 40px;">
+                <h2 style="margin-top: 5px; font-size: 1.8rem; color: #38bdf8; font-family: Georgia, serif; font-style: italic;">
+                    To Beyoncé ❤️
                 </h2>
                 
                 <div style="font-size: 1.1rem; line-height: 1.8; text-align: center; color: #cbd5e1; margin: 20px 0; font-family: Georgia, serif;">
-                    <p style="margin: 5px 0;">The endless charts, the exams you've passed,</p>
-                    <p style="margin: 5px 0;">The late night studying has paid off at last.</p>
-                    <p style="margin: 5px 0;">With a gentle heart and hands that heal,</p>
-                    <p style="margin: 5px 0;">The pride I have for you is entirely real!</p>
+                    <p style="margin: 5px 0;">The long nights are over,</p>
+                    <p style="margin: 5px 0;">the exams are behind you,</p>
+                    <p style="margin: 5px 0;">and every challenge has led you here.</p>
                 </div>
 
-                <p style="font-size: 1.05rem; line-height: 1.6; text-align: left; color: #94a3b8; margin-bottom: 25px;">
-                    I have watched you push through the stress, the tears, and the impossible clinical hours. You didn't just survive nursing school—you conquered it. I cannot wait to see the incredible lives you will touch.
-                </p>
+                <div style="font-size: 1rem; line-height: 1.6; text-align: left; color: #94a3b8; margin-bottom: 25px;">
+                    <p>Beyoncé, today you don’t just celebrate graduating—you celebrate becoming the compassionate, dedicated nurse you’ve worked so hard to be.</p>
+                    
+                    <p>I’ve watched you stay determined through the stress, the early mornings, the endless studying, and every obstacle that stood in your way. You never stopped believing in yourself, and neither did I.</p>
+                    
+                    <p>The world is so lucky to have someone as caring and kind as you looking after others.</p>
+                </div>
                 
                 <p style="font-size: 1.1rem; line-height: 1.6; text-align: center; color: #f472b6; font-weight: 600; margin-bottom: 0;">
-                    Congratulations, RN! The future is yours. ❤️
+                    Congratulations, Beyoncé.<br>Your journey as a nurse starts today, and I couldn’t be prouder of you. ❤️
                 </p>
             </div>
         </div>
@@ -288,7 +295,7 @@
                 y: canvas.height - 120,
                 width: 80,
                 height: 50,
-                emoji: "💼" // Medical bag
+                emoji: "💼" 
             };
             items = [];
             updateHUD();
@@ -319,14 +326,13 @@
             let type = "good";
 
             if (rand < 0.40) { 
-                emoji = "🦠"; // Virus
+                emoji = "🦠"; 
                 type = "bad";
             } else if (rand > 0.94) { 
                 emoji = "☕";
                 type = "coffee";
             }
 
-            // Apply level speed multiplier
             let baseSpeed = Math.random() * 2.2 + 3.5;
             let currentSpeed = baseSpeed * levels[currentLevel].speedMult;
 
@@ -362,7 +368,7 @@
 
         function continueLevel() {
             currentLevel++;
-            items = []; // clear screen
+            items = []; 
             document.getElementById('level-screen').classList.add('hidden');
             updateHUD();
             gameActive = true;
@@ -441,14 +447,13 @@
                         return;
                     }
 
-                    // Level Up / Win Logic
                     if (score >= levels[currentLevel].target) {
                         if (currentLevel < levels.length - 1) {
                             triggerLevelUp();
                         } else {
                             triggerWin();
                         }
-                        return; // Halt update loop until next state
+                        return; 
                     }
                     continue;
                 }
