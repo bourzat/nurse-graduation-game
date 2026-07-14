@@ -225,13 +225,10 @@
         let player, items;
         let spawnTimer;
 
-        // True Hard Mode: Shifted the speeds up exactly as requested
+        // True Hard Mode: High speeds, short spawn delays
         const levels = [
-            // Level 1 takes old Level 2's speed and spawn rate
             { target: 100,  speedMult: 1.7, spawnRate: 300, title: "Shift 1 Complete! <span class='emoji'>🩺</span>", text: "You crushed your first few clinicals! Just like in real life, you handle the pressure with absolute grace. Keep pushing, I believe in you!" },
-            // Level 2 takes old Level 3's speed and spawn rate
             { target: 250,  speedMult: 2.2, spawnRate: 200, title: "Shift 2 Complete! <span class='emoji'>🌙</span>", text: "I've seen the late nights and the endless flashcards. Your dedication to your patients and your craft amazes me every single day. One more big push to the finish line!" },
-            // Level 3 is now absolute chaos
             { target: 400,  speedMult: 3.5, spawnRate: 100, title: "Graduation!", text: "" } 
         ];
         let currentLevel = 0;
@@ -334,11 +331,11 @@
             let emoji = "🩺";
             let type = "good";
 
-            // 50% chance for a hazard
-            if (rand < 0.50) { 
+            // Reduced virus chance to 35%, increased coffee chance to 10%
+            if (rand < 0.35) { 
                 emoji = "🦠"; 
                 type = "bad";
-            } else if (rand > 0.92) { 
+            } else if (rand > 0.90) { 
                 emoji = "☕";
                 type = "coffee";
             }
